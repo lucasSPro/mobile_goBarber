@@ -1,11 +1,10 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import {
   Image,
   View,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   TextInput,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -23,23 +22,34 @@ import logoImg from '../../assets/logo.png';
 import { Container, Title, BackToSignIn, BackToSignInText } from './styles';
 
 const SignUp: React.FC = () => {
+  const [changeInput, setChangeInput] = useState(false);
+
   const navigation = useNavigation();
   const formRef = useRef<FormHandles>(null);
 
   const emailInpuRef = useRef<TextInput>(null);
   const passwordInputRef = useRef<TextInput>(null);
 
+  const scrollChange = useRef<ScrollView>(null);
+
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      style={{ flex: 1 }}
-    >
-      <View style={{ flex: 1 }}>
-        <ScrollView
-          keyboardShouldPersistTaps="handled"
-          pointerEvents="auto"
-          automaticallyAdjustContentInsets
-          contentContainerStyle={{ flexGrow: 1 }}
+    <>
+      <ScrollView
+        ref={scrollChange}
+        keyboardShouldPersistTaps="handled"
+        pointerEvents="auto"
+        automaticallyAdjustContentInsets
+        contentContainerStyle={{ flexGrow: 1 }}
+        onContentSizeChange={
+          !changeInput
+            ? () => scrollChange.current?.scrollTo({ x: 0, y: 250 })
+            : undefined
+        }
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={Platform.OS === 'android' ? 20 : 64}
+          style={{ flex: 1 }}
         >
           <Container>
             <Image source={logoImg} />
@@ -61,6 +71,8 @@ const SignUp: React.FC = () => {
                 returnKeyType="next"
                 onSubmitEditing={() => {
                   emailInpuRef.current?.focus();
+                  setChangeInput(true);
+                  setChangeInput(false);
                 }}
               />
               <Input
@@ -74,6 +86,8 @@ const SignUp: React.FC = () => {
                 returnKeyType="next"
                 onSubmitEditing={() => {
                   passwordInputRef.current?.focus();
+                  setChangeInput(true);
+                  setChangeInput(false);
                 }}
               />
               <Input
@@ -85,7 +99,8 @@ const SignUp: React.FC = () => {
                 textContentType="newPassword"
                 returnKeyType="send"
                 onSubmitEditing={() => {
-                  formRef.current?.submitForm();
+                  passwordInputRef.current?.focus();
+                  setChangeInput(true);
                 }}
               />
 
@@ -94,17 +109,17 @@ const SignUp: React.FC = () => {
                   formRef.current?.submitForm();
                 }}
               >
-                Entrar
+                Cadastrar
               </Button>
             </Form>
-            <BackToSignIn onPress={() => navigation.goBack()}>
-              <Icon name="arrow-left" size={20} color="#fff" />
-              <BackToSignInText>Voltar para logon</BackToSignInText>
-            </BackToSignIn>
           </Container>
-        </ScrollView>
-      </View>
-    </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </ScrollView>
+      <BackToSignIn onPress={() => navigation.goBack()}>
+        <Icon name="arrow-left" size={20} color="#fff" />
+        <BackToSignInText>Voltar para logon</BackToSignInText>
+      </BackToSignIn>
+    </>
   );
 };
 

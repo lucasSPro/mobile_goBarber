@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/camelcase */
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { Platform } from 'react-native';
+import { Platform, Alert } from 'react-native';
 import { format } from 'date-fns';
 import Icon from 'react-native-vector-icons/Feather';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -52,7 +53,7 @@ interface AvailabilityItem {
 const CreateAppointment: React.FC = () => {
   const { user } = useAuth();
   const route = useRoute();
-  const { goBack } = useNavigation();
+  const { goBack, navigate } = useNavigation();
   const routeParams = route.params as RouteParams;
 
   const [availability, setAvailability] = useState<AvailabilityItem[]>([]);
@@ -136,6 +137,26 @@ const CreateAppointment: React.FC = () => {
     [setSelectedHour],
   );
 
+  const handleCreateAppointment = useCallback(async () => {
+    try {
+      const date = new Date(selectedDate);
+
+      date.setHours(selectedHour);
+      date.setMinutes(0);
+
+      await api.post('appointments', {
+        provider_id: selectedProvider,
+        date,
+      });
+      navigate('AppointmentCreated', { date: date.getTime() });
+    } catch (err) {
+      Alert.alert(
+        'Erro ao criar o agentamento',
+        'Ocorreu um erro ao criar o agendamento, tente novamente',
+      );
+    }
+  }, [selectedProvider, navigate, selectedHour, selectedDate]);
+
   return (
     <Container>
       <Header>
@@ -196,7 +217,10 @@ const CreateAppointment: React.FC = () => {
                   available={available}
                   key={hourFormatted}
                 >
-                  <HourText selected={selectedHour === hour}>
+                  <HourText
+                    available={available}
+                    selected={selectedHour === hour}
+                  >
                     {hourFormatted}
                   </HourText>
                 </Hour>
@@ -215,7 +239,10 @@ const CreateAppointment: React.FC = () => {
                     available={available}
                     key={hourFormatted}
                   >
-                    <HourText selected={selectedHour === hour}>
+                    <HourText
+                      available={available}
+                      selected={selectedHour === hour}
+                    >
                       {hourFormatted}
                     </HourText>
                   </Hour>
@@ -224,7 +251,7 @@ const CreateAppointment: React.FC = () => {
             </SectionContent>
           </Section>
         </Schedule>
-        <CreateAccountButton onPress={() => {}}>
+        <CreateAccountButton onPress={handleCreateAppointment}>
           <CreateAccountButtonText> Agendar </CreateAccountButtonText>
         </CreateAccountButton>
       </Content>

@@ -24,14 +24,14 @@ const AppointmentCreated: React.FC = () => {
 
   const handleOkPressed = useCallback(() => {
     reset({
-      routes: [{ name: 'Dashboard' }],
+      routes: [{ name: 'dashboard' }],
       index: 0,
     });
   }, [reset]);
   const formattedDate = useMemo(() => {
     return format(
       routeParams.date,
-      "EE',dia' dd 'de' MMMM 'de' yyyy 'às' HH:mm'h' ",
+      "EE', dia' dd 'de' MMMM 'de' yyyy 'às' HH:mm'h' ",
       { locale: ptBr },
     );
   }, [routeParams]);

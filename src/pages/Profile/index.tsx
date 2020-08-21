@@ -10,6 +10,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import * as Yup from 'yup';
 import Icon from 'react-native-vector-icons/Feather';
+import ImagePicker from 'react-native-image-picker';
 
 import { Form } from '@unform/mobile';
 import { FormHandles } from '@unform/core';
@@ -27,6 +28,7 @@ import {
   Title,
   UserAvatarButton,
   UserAvatar,
+  ButtonSignOut,
 } from './styles';
 import { useAuth } from '../../hooks/auth';
 
@@ -39,7 +41,7 @@ interface SignUpFormData {
 }
 
 const SignUp: React.FC = () => {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, signOut } = useAuth();
   const [changeInput, setChangeInput] = useState(false);
 
   const navigation = useNavigation();
@@ -52,79 +54,118 @@ const SignUp: React.FC = () => {
 
   const scrollChange = useRef<ScrollView>(null);
 
-  const handleSignUp = useCallback(async (data: SignUpFormData) => {
-    try {
-      formRef.current?.setErrors({});
+  const handleSignUp = useCallback(
+    async (data: SignUpFormData) => {
+      try {
+        formRef.current?.setErrors({});
 
-      const schema = Yup.object().shape({
-        name: Yup.string().required('Nome Obrigatório'),
-        email: Yup.string()
-          .required('E-mail obrigatório')
-          .email('Digite um e-mail válido'),
-        old_password: Yup.string(),
-        password: Yup.string().when('old_password', {
-          is: (val) => !!val.length,
-          then: Yup.string().required(),
-          otherwise: Yup.string(),
-        }),
-        password_confirmation: Yup.string()
-          .when('old_password', {
+        const schema = Yup.object().shape({
+          name: Yup.string().required('Nome Obrigatório'),
+          email: Yup.string()
+            .required('E-mail obrigatório')
+            .email('Digite um e-mail válido'),
+          old_password: Yup.string(),
+          password: Yup.string().when('old_password', {
             is: (val) => !!val.length,
             then: Yup.string().required(),
             otherwise: Yup.string(),
-          })
-          .oneOf([Yup.ref('password'), null], 'A confirmação está diferente'),
-      });
+          }),
+          password_confirmation: Yup.string()
+            .when('old_password', {
+              is: (val) => !!val.length,
+              then: Yup.string().required(),
+              otherwise: Yup.string(),
+            })
+            .oneOf([Yup.ref('password'), null], 'A confirmação está diferente'),
+        });
 
-      await schema.validate(data, {
-        abortEarly: false,
-      });
+        await schema.validate(data, {
+          abortEarly: false,
+        });
 
-      const {
-        name,
-        email,
-        old_password,
-        password,
-        password_confirmation,
-      } = data;
+        const {
+          name,
+          email,
+          old_password,
+          password,
+          password_confirmation,
+        } = data;
 
-      const formData = {
-        name,
-        email,
-        ...(old_password
-          ? {
-              old_password,
-              password,
-              password_confirmation,
-            }
-          : {}),
-      };
+        const formData = {
+          name,
+          email,
+          ...(old_password
+            ? {
+                old_password,
+                password,
+                password_confirmation,
+              }
+            : {}),
+        };
 
-      const response = await api.put('/profile', formData);
+        const response = await api.put('/profile', formData);
 
-      updateUser(response.data);
+        updateUser(response.data);
 
-      Alert.alert('Perfil atualizado com sucesso!');
+        Alert.alert('Perfil atualizado com sucesso!');
 
-      navigation.goBack();
-    } catch (err) {
-      if (err instanceof Yup.ValidationError) {
-        const errors = getValidationErrors(err);
+        navigation.goBack();
+      } catch (err) {
+        if (err instanceof Yup.ValidationError) {
+          const errors = getValidationErrors(err);
 
-        formRef.current?.setErrors(errors);
-        return;
+          formRef.current?.setErrors(errors);
+          return;
+        }
+        // disparar um toast
+        Alert.alert(
+          'Erro na atualização do perfil',
+          'Ocorreu um erro ao atualizar os dados, tente novamente',
+        );
       }
-      // disparar um toast
-      Alert.alert(
-        'Erro na atualização do perfil',
-        'Ocorreu um erro ao atualizar os dados, tente novamente',
-      );
-    }
-  }, []);
+    },
+    [navigation, updateUser],
+  );
+
+  const handleUpdateAvatar = useCallback(() => {
+    ImagePicker.showImagePicker(
+      {
+        title: 'Selecione uma foto',
+        cancelButtonTitle: 'Cancelar',
+        takePhotoButtonTitle: 'Usar a Câmera',
+        chooseFromLibraryButtonTitle: 'Escolher da galeria',
+      },
+      async(response)  => {
+        if (response.didCancel) {
+          return;
+        }
+        if (response.error) {
+          Alert.alert('Erro ao atualizar sua foto');
+          return;
+        }
+
+        const data = new FormData();
+
+        data.append('avatar', {
+          type: 'image/jpeg',
+          name: `${user.id}.jpg`,
+          uri: response.uri,
+        });
+        console.log("esse é o data: " + data);
+        const res = await api.patch('/users/avatar', data);
+
+        updateUser(res.data);
+      },
+    );
+  }, [updateUser, user.id]);
+
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+  const handleSignOut = useCallback(() => {
+    signOut();
+  }, []);
 
   return (
     <>
@@ -149,7 +190,7 @@ const SignUp: React.FC = () => {
             <BackButton onPress={handleGoBack}>
               <Icon name="chevron-left" size={24} color="#999591" />
             </BackButton>
-            <UserAvatarButton onPress={() => {}}>
+            <UserAvatarButton onPress={handleUpdateAvatar}>
               <UserAvatar source={{ uri: user.avatar_url }} />
             </UserAvatarButton>
             <View>
@@ -232,6 +273,9 @@ const SignUp: React.FC = () => {
                 Confirmar mudança
               </Button>
             </Form>
+            <ButtonSignOut onPress={handleSignOut}>
+              <Icon name="log-out" size={24} color="#999591" />
+            </ButtonSignOut>
           </Container>
         </KeyboardAvoidingView>
       </ScrollView>

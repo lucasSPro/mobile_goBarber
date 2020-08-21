@@ -29,3 +29,8 @@ export const UserAvatar = styled.Image`
   margin-top: 64px;
   align-self: center;
 `;
+
+export const ButtonSignOut = styled.TouchableOpacity`
+  margin-top: 32px;
+  align-self: center;
+`;

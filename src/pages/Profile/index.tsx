@@ -39,7 +39,7 @@ interface SignUpFormData {
 }
 
 const SignUp: React.FC = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const [changeInput, setChangeInput] = useState(false);
 
   const navigation = useNavigation();
@@ -100,7 +100,9 @@ const SignUp: React.FC = () => {
           : {}),
       };
 
-      await api.put('profile', formData);
+      const response = await api.put('/profile', formData);
+
+      updateUser(response.data);
 
       Alert.alert('Perfil atualizado com sucesso!');
 

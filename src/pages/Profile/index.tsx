@@ -22,6 +22,8 @@ import getValidationErrors from '../../utils/getValidationErrors';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 
+import defaultAvatar from '../../assets/defaultAvatar.png';
+
 import {
   Container,
   BackButton,
@@ -191,7 +193,7 @@ const SignUp: React.FC = () => {
               <Icon name="chevron-left" size={24} color="#999591" />
             </BackButton>
             <UserAvatarButton onPress={handleUpdateAvatar}>
-              <UserAvatar source={{ uri: user.avatar_url }} />
+              <UserAvatar source={user.avatar_url ? { uri: user.avatar_url} : defaultAvatar} />
             </UserAvatarButton>
             <View>
               <Title>Meu perfil</Title>

@@ -41,6 +41,8 @@ export const HeaderTitle = styled.Text`
   margin-left: 16px;
 `;
 
+export const ProfileButton = styled.TouchableOpacity``;
+
 export const UserAvatar = styled.Image`
   width: 56px;
   height: 56px;

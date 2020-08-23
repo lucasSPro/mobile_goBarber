@@ -9,11 +9,14 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useAuth } from '../../hooks/auth';
 import api from '../../services/api';
 
+import defaultAvatar from '../../assets/defaultAvatar.png';
+
 import {
   Container,
   Header,
   BackButton,
   HeaderTitle,
+  ProfileButton,
   UserAvatar,
   Content,
   ProviderListContainer,
@@ -137,6 +140,10 @@ const CreateAppointment: React.FC = () => {
     [setSelectedHour],
   );
 
+  const navigateToProfile = useCallback(() => {
+    navigate('Profile');
+  }, [navigate]);
+
   const handleCreateAppointment = useCallback(async () => {
     try {
       const date = new Date(selectedDate);
@@ -164,7 +171,9 @@ const CreateAppointment: React.FC = () => {
           <Icon name="chevron-left" size={24} color="#999591" />
         </BackButton>
         <HeaderTitle> Cabeleireiros </HeaderTitle>
-        <UserAvatar source={{ uri: user.avatar_url }} />
+        <ProfileButton onPress={navigateToProfile}  >
+          <UserAvatar source={user.avatar_url ? { uri: user.avatar_url} : defaultAvatar } />
+        </ProfileButton>
       </Header>
       <Content>
         <ProviderListContainer>
@@ -178,7 +187,7 @@ const CreateAppointment: React.FC = () => {
                 onPress={() => handleSelectedProvider(provider.id)}
                 selected={provider.id === selectedProvider}
               >
-                <ProviderAvatar source={{ uri: provider.avatar_url }} />
+                <ProviderAvatar source={provider.avatar_url ?{ uri: provider.avatar_url} : defaultAvatar } />
                 <ProviderName selected={provider.id === selectedProvider}>
                   {provider.name}
                 </ProviderName>

@@ -5,6 +5,8 @@ import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../hooks/auth';
 import api from '../../services/api';
 
+import defaultAvatar from '../../assets/defaultAvatar.png';
+
 import {
   Container,
   Header,
@@ -55,11 +57,11 @@ const Dashboard: React.FC = () => {
     <Container>
       <Header>
         <HeaderTitle>
-          Bem Vindo(a), {'\n'}
+          Bem Vindo, {'\n'}
           <UserName> {user.name} </UserName>
         </HeaderTitle>
         <ProfileButton onPress={navigateToProfile}>
-          <UserAvatar source={{ uri: user.avatar_url }} />
+          <UserAvatar source={user.avatar_url ? { uri: user.avatar_url} : defaultAvatar } />
         </ProfileButton>
       </Header>
       <ProvidersList
@@ -72,7 +74,7 @@ const Dashboard: React.FC = () => {
           <ProviderContainer
             onPress={() => navigateToCreateAppointment(provider.id)}
           >
-            <ProviderAvatar source={{ uri: provider.avatar_url }} />
+            <ProviderAvatar source={ provider.avatar_url ?{ uri: provider.avatar_url} : defaultAvatar } />
             <ProviderInfo>
               <ProviderName> {provider.name} </ProviderName>
               <ProviderMeta>
